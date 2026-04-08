@@ -1,0 +1,24 @@
+#Brain
+
+langgraph>=0.2.0
+langchain-google-genai>=0.3.0
+langchain-core>=0.3.0
+
+#LLM
+
+google-generativeai>=0.8.0
+
+#DB
+
+duckdb>=1.1.0
+
+#UI + Graph
+
+streamlit>=1.41.0
+plotly>=5.24.0
+
+#Others (in case needed)
+
+pandas>=2.2.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
