@@ -1,4 +1,4 @@
-PacienteID,Fecha de inicio,Fecha de fin,Código,Nombre,Dosis,Frecuencia,Vía de administración
+PacienteID,Fecha_inicio,Fecha_fin,Codigo,Nombre,Dosis,Frecuencia,Vía_administración
 1,2018-06-01,,C09AA03,Lisinopril,10 mg,1 vez al día,oral
 1,2019-01-15,,C03AA03,Hidroclorotiazida,25 mg,1 vez al día,oral
 1,2018-06-05,,C10AA05,Atorvastatina,20 mg,1 vez al día,oral
