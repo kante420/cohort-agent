@@ -9,6 +9,21 @@ st.set_page_config(
     layout="wide" #Que ocupe todo el ancho de la pantalla
 )
 
+st.markdown("""
+    <style>
+    [data-testid="stStatusWidget"] {
+        visibility: hidden;
+        display: none;
+    }
+    header[data-testid="stHeader"] {
+        background: none;
+    }
+    #MainMenu {
+        visibility: hidden;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("Agente conversacional de cohortes")
 st.caption("Identifica y analiza pacientes crónicos mediante lenguaje natural")
 
