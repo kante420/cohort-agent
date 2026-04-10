@@ -151,6 +151,7 @@ with st.sidebar:
     st.divider()
 
     with st.expander("ℹ️ Sobre el proyecto"):
+        st.image("logo_icon.png", width=300)
         st.markdown("""
         **Agente conversacional para cohortes de pacientes crónicos**
 
