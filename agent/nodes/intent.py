@@ -1,6 +1,8 @@
 import ollama
+from config import OLLAMA_HOST
 
-MODEL = "qwen2.5-coder:7b"
+MODEL = "qwen2.5-coder:14b-instruct-q8_0"
+client = ollama.Client(host=OLLAMA_HOST)
 
 INTENT_PROMPT = """Clasifica la intención del mensaje del usuario en UNA de estas categorías:
 
@@ -35,14 +37,12 @@ def intent_node(state: dict) -> dict:
 
     prompt = INTENT_PROMPT.format(historial=historial, mensaje=mensaje)
 
-    response = ollama.chat(
+    response = client.chat(
         model=MODEL,
         messages=[{"role": "user", "content": prompt}]
     )
 
     intent = response["message"]["content"].strip().lower()
-
-    # Limpia por si el modelo añade puntuación o espacios extra
     intent = intent.split()[0] if intent.split() else "sql"
     intent = intent.strip(".,;:")
 

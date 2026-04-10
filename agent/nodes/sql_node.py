@@ -1,12 +1,14 @@
 import ollama
+from config import DB_PATH, OLLAMA_HOST
 from agent.tools.duckdb_tool import DuckDBTool
 from prompts.sql_prompt import SQL_GENERATION_PROMPT, ANSWER_GENERATION_PROMPT
 
-MODEL = "qwen2.5-coder:7b"
+MODEL = "qwen2.5-coder:14b-instruct-q8_0"
 db_tool = DuckDBTool()
+client = ollama.Client(host=OLLAMA_HOST)
 
 def _call_llm(prompt: str) -> str:
-    response = ollama.chat(
+    response = client.chat(
         model=MODEL,
         messages=[{"role": "user", "content": prompt}]
     )

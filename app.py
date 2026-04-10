@@ -41,11 +41,11 @@ if "last_df" not in st.session_state: #last_df -> Guarda el último DataFrame
     st.session_state.last_df = None  # último DataFrame para exportar
 
 #Recorremos todos los mensajes guardados y los ponemos en pantalla
-for msg in st.session_state.messages:
+for i, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
         if msg.get("chart"):
-            st.plotly_chart(msg["chart"], use_container_width=True)
+            st.plotly_chart(msg["chart"], use_container_width=True, key=f"chart_history_{i}")
         if msg.get("sql"):
             with st.expander("SQL ejecutado"):
                 st.code(msg["sql"], language="sql")
@@ -77,7 +77,7 @@ if prompt := st.chat_input("Escribe tu pregunta sobre la cohorte..."):
 
         #Mostramos la gráfica si existe
         if chart:
-            st.plotly_chart(chart, use_container_width=True)
+            st.plotly_chart(chart, use_container_width=True, key=f"chart_new_{len(st.session_state.messages)}")
 
         #Mostramos el SQL en un desplegable
         if sql and sql != "CANNOT_ANSWER":
