@@ -1,6 +1,8 @@
 import streamlit as st
 from agent.graph import agent
 from agent.memory import ConversationMemory
+import os
+import glob
 
 # ── Configuración de la página ──────────────────────────────────────────────
 st.set_page_config(
@@ -112,6 +114,21 @@ with st.sidebar:
 
     st.divider()
 
+    #Exportar conversación PDF
+    if st.session_state.messages:
+        from viz.export import conversation_to_pdf
+        pdf_bytes = conversation_to_pdf(st.session_state.messages)
+        st.download_button(
+            label="Descargar conversación (PDF)",
+            data=pdf_bytes,
+            file_name=f"conversacion_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
+            mime="application/pdf"
+        )
+    else:
+        st.caption("Inicia una conversación para exportar el informe.")
+
+    st.divider()
+
     #Acción de limpiar conversación
     if st.button("Limpiar conversación"):
         st.session_state.messages = []
@@ -130,11 +147,6 @@ with st.sidebar:
     st.caption("cohorte_alergias")
     st.caption("cohorte_procedimientos")
 
-import os
-import glob
-
-
-with st.sidebar:
     st.divider()
 
     with st.expander("ℹ️ Sobre el proyecto"):
