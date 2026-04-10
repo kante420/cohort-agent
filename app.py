@@ -129,3 +129,38 @@ with st.sidebar:
     st.caption("cohorte_medicaciones")
     st.caption("cohorte_alergias")
     st.caption("cohorte_procedimientos")
+
+import os
+import glob
+
+
+with st.sidebar:
+    st.divider()
+
+    with st.expander("ℹ️ Sobre el proyecto"):
+        st.markdown("""
+        **Agente conversacional para cohortes de pacientes crónicos**
+
+        Permite a profesionales de la salud consultar datos clínicos 
+        mediante lenguaje natural, sin necesidad de conocer SQL.
+
+        **Tecnologías:**
+        - LangGraph — orquestación
+        - Ollama + Qwen 2.5 Coder 7B — LLM local
+        - DuckDB — motor de datos
+        - Plotly — visualización
+        - Streamlit — interfaz
+                    
+        Este proyecto ha sido desarrollado como solución para el reto prpuesto
+        por Dedalus para su Dathathon en Castilla-La Mancha.
+                    
+        Desarrollado por:
+        - Hugo Cantero Serrano - Estudiante de 2º de Ingeniería Informática en la ESIIAB
+        - Diego Calcerrada Romero - Estudiante de 2º de Ingeniería Informática en la ESIICR
+        """)
+
+    with st.expander("📂 Archivos de datos"):
+        st.markdown("Las respuestas se generan consultando estos archivos:")
+        csv_files = glob.glob("./data/raw/*.csv")
+        for f in sorted(csv_files):
+            st.markdown(f"- `{os.path.basename(f)}`")
