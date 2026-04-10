@@ -1,5 +1,10 @@
-# Cohort Agent
-## Designed for Dedalus Dathathon Castilla-La Mancha
+<p align="center">
+  <img src="text_logo.png"/>
+</p>
+
+<h1 align="center"></h1>
+
+### Designed for Dedalus Dathathon Castilla-La Mancha
 
 The challenge of this project lies on indentifying cohorts of cronic patients based on a conversational agent.
 
