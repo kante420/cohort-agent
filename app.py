@@ -3,11 +3,12 @@ from agent.graph import agent
 from agent.memory import ConversationMemory
 import os
 import glob
+from datetime import datetime
 
 # ── Configuración de la página ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Agente de Cohortes", #Nombre de la pestaña
-    page_icon="🏥", #Icono de la pstaña
+    page_icon="logo_icon.png", #Icono de la pstaña
     layout="wide" #Que ocupe todo el ancho de la pantalla
 )
 
@@ -26,8 +27,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("Agente conversacional de cohortes")
-st.caption("Identifica y analiza pacientes crónicos mediante lenguaje natural")
+st.image("text_logo.png", width=400)
+st.caption("Identificación y análisis de pacientes crónicos mediante lenguaje natural")
 
 #Analizamos el estado de la sesiónm
 if "memory" not in st.session_state: #memory -> Guarda el contexto de la conversación
