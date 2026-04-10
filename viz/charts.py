@@ -12,32 +12,56 @@ def detect_chart_type(df: pd.DataFrame, question: str = "") -> str:
     n_cols = len(cols)
     question_lower = question.lower()
 
-    #Identificamos que tipo de datos tenemos
-    text_cols = [c for c in cols if df[c].dtype == object] #Columnas con texto
-    num_cols  = [c for c in cols if pd.api.types.is_numeric_dtype(df[c])] #Columnas con números
-    date_cols = [c for c in cols if pd.api.types.is_datetime64_any_dtype(df[c])
-                 or any(k in c.lower() for k in ["fecha", "date", "año", "mes"])] #Columnas con tiempo
+    if len(df) == 1 and n_cols == 1:
+        return "none"
 
-    #Análisis de las intenciónes del usuario basándonos en la pregunta y buscando keywords
-    wants_pie  = any(k in question_lower for k in ["distribución", "proporción", "porcentaje", "%"])
+    if cols == ["PacienteID"] or cols == ["pacienteid"]:
+        return "none"
+
+    text_cols = [c for c in cols if pd.api.types.is_string_dtype(df[c])
+                 or pd.api.types.is_object_dtype(df[c])]
+    num_cols  = [c for c in cols if pd.api.types.is_numeric_dtype(df[c])]
+    date_cols = [c for c in cols if pd.api.types.is_datetime64_any_dtype(df[c])
+                 or any(k in c.lower() for k in ["fecha", "date", "año", "mes"])]
+
+    wants_pie  = any(k in question_lower for k in [
+        "distribución", "proporción", "porcentaje", "%",
+        "quesito", "tarta", "pie", "reparto"
+    ])
     wants_line = any(k in question_lower for k in ["evolución", "tendencia", "tiempo", "histórico"])
 
-    #Árbol de decisión
+    # Debug completo
+    #print(f"DEBUG text_cols={text_cols}")
+    #print(f"DEBUG num_cols={num_cols}")
+    #print(f"DEBUG wants_pie={wants_pie}")
+    if text_cols:
+        print(f"DEBUG n_categorias={df[text_cols[0]].nunique()}")
+
     if date_cols and num_cols:
-        return "line" #Gráfico de Líneas
+        print("DEBUG → line")
+        return "line"
     if wants_line and num_cols:
-        return "line" #Gráfico de Líneas
+        #print("DEBUG → line")
+        return "line"
     if n_cols == 1 and num_cols:
-        return "histogram" #Histograma
+        #print("DEBUG → histogram")
+        return "histogram"
     if text_cols and num_cols:
         n_categorias = df[text_cols[0]].nunique()
-        if wants_pie or n_categorias <= 6:
-            return "pie" #Pie Chart
+        if wants_pie or n_categorias <= 2:
+            #print("DEBUG → pie")
+            return "pie"
+        if n_categorias <= 6:
+            #print("DEBUG → pie")
+            return "pie"
+        #print("DEBUG → bar")
         return "bar"
     if n_cols >= 2 and num_cols:
-        return "bar" #Gráfico de Barras
+        #print("DEBUG → bar")
+        return "bar"
 
-    return "table" #Tabla con formato -> En casa de que ninguna sea posible
+    #print("DEBUG → table")
+    return "table"
 
 #Una vez definido el tipo de gráfica -> Generamos la gráfica
 def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure | None:
@@ -60,11 +84,17 @@ def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure
         return "none"
 
     chart_type = detect_chart_type(df, question)
-    text_cols  = [c for c in cols if df[c].dtype == object]
+
+    #print(f"DEBUG build_chart chart_type={chart_type}")
+
+    text_cols = [c for c in cols if pd.api.types.is_string_dtype(df[c])
+             or pd.api.types.is_object_dtype(df[c])]    
     num_cols   = [c for c in cols if pd.api.types.is_numeric_dtype(df[c])]
     date_cols  = [c for c in cols if any(k in c.lower() for k in ["fecha", "date"])]
 
-    chart_title = title or question
+    chart_title = title
+
+    #print(f"DEBUG build_chart text_cols={text_cols} num_cols={num_cols}")
 
     if chart_type == "bar" and text_cols and num_cols:
         fig = px.bar(df,x=text_cols[0],y=num_cols[0],title=chart_title,color=text_cols[0],color_discrete_sequence=px.colors.qualitative.Set2)
