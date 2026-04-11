@@ -139,7 +139,7 @@ with st.sidebar:
 
     st.divider()
 
-    #Información de las tablas disponibles
+    """#Información de las tablas disponibles
     st.header("Tablas disponibles")
     st.caption("cohorte_pacientes")
     st.caption("cohorte_condiciones")
@@ -147,8 +147,9 @@ with st.sidebar:
     st.caption("cohorte_medicaciones")
     st.caption("cohorte_alergias")
     st.caption("cohorte_procedimientos")
+    """
 
-    st.divider()
+    #st.divider()
 
     with st.expander("ℹ️ Sobre el proyecto"):
         st.image("logo_icon.png", width=300)
