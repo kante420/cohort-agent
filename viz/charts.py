@@ -28,39 +28,42 @@ def detect_chart_type(df: pd.DataFrame, question: str = "") -> str:
         "distribución", "proporción", "porcentaje", "%",
         "quesito", "tarta", "pie", "reparto"
     ])
-    wants_line = any(k in question_lower for k in ["evolución", "tendencia", "tiempo", "histórico"])
-
-    # Debug completo
-    #print(f"DEBUG text_cols={text_cols}")
-    #print(f"DEBUG num_cols={num_cols}")
-    #print(f"DEBUG wants_pie={wants_pie}")
-    if text_cols:
-        print(f"DEBUG n_categorias={df[text_cols[0]].nunique()}")
+    wants_hist = any(k in question_lower for k in [
+        "distribución de edad", "distribución de las edad",
+        "histograma", "rango de edad"
+    ])
+    wants_line = any(k in question_lower for k in [
+        "evolución", "tendencia", "tiempo", "histórico", "por año", "por mes"
+    ])
 
     if date_cols and num_cols:
-        print("DEBUG → line")
         return "line"
     if wants_line and num_cols:
-        #print("DEBUG → line")
         return "line"
-    if n_cols == 1 and num_cols:
-        #print("DEBUG → histogram")
+
+    # Histograma explícito
+    if wants_hist and num_cols:
         return "histogram"
+
+    if n_cols == 1 and num_cols:
+        return "histogram"
+
     if text_cols and num_cols:
         n_categorias = df[text_cols[0]].nunique()
-        if wants_pie or n_categorias <= 2:
-            #print("DEBUG → pie")
+
+        # Pie solo si se pide explícitamente o hay exactamente 2 categorías
+        # y la pregunta habla de porcentaje/distribución
+        if wants_pie and n_categorias <= 6:
             return "pie"
-        if n_categorias <= 6:
-            #print("DEBUG → pie")
+        if n_categorias == 2 and wants_pie:
             return "pie"
-        #print("DEBUG → bar")
-        return "bar"
-    if n_cols >= 2 and num_cols:
-        #print("DEBUG → bar")
+
+        # Barras para todo lo demás
         return "bar"
 
-    #print("DEBUG → table")
+    if n_cols >= 2 and num_cols:
+        return "bar"
+
     return "table"
 
 #Una vez definido el tipo de gráfica -> Generamos la gráfica
@@ -98,16 +101,48 @@ def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure
 
     if chart_type == "bar" and text_cols and num_cols:
         fig = px.bar(df,x=text_cols[0],y=num_cols[0],title=chart_title,color=text_cols[0],color_discrete_sequence=px.colors.qualitative.Set2)
+        fig.update_yaxes(tickmode='linear', dtick=1)
 
     elif chart_type == "pie" and text_cols and num_cols:
         fig = px.pie(df,names=text_cols[0],values=num_cols[0],title=chart_title,color_discrete_sequence=px.colors.qualitative.Set2)
 
     elif chart_type == "line":
-        x_col = date_cols[0] if date_cols else (text_cols[0] if text_cols else cols[0])
-        fig = px.line(df,x=x_col,y=num_cols[0] if num_cols else cols[1],title=chart_title,markers=True)
+        # Detecta columna de año por nombre
+        year_cols = [c for c in cols if any(k in c.lower() for k in ["año", "anio", "year", "fecha"])]
+    
+        if year_cols:
+            x_col = year_cols[0]
+            y_col = [c for c in num_cols if c != x_col][0] if len(num_cols) > 1 else num_cols[0]
+        elif date_cols:
+            x_col = date_cols[0]
+            y_col = num_cols[0] if num_cols else cols[1]
+        elif text_cols:
+            x_col = text_cols[0]
+            y_col = num_cols[0] if num_cols else cols[1]
+        else:
+            x_col = cols[0]
+            y_col = cols[1] if len(cols) > 1 else cols[0]
+
+        # Corrige etiqueta Anio → Año
+        x_label = x_col.replace("Anio", "Año").replace("anio", "Año").replace("ano", "Año").replace("Ano", "Año")
+
+        fig = px.line(
+            df,
+            x=x_col,
+            y=y_col,
+            title=chart_title,
+            markers=True,
+            labels={x_col: x_label}
+        )
+        if pd.api.types.is_numeric_dtype(df[x_col]):
+            fig.update_xaxes(tickmode='linear', dtick=1)
+        if pd.api.types.is_numeric_dtype(df[y_col]):
+            fig.update_yaxes(tickmode='linear', dtick=1)
 
     elif chart_type == "histogram" and num_cols:
         fig = px.histogram(df,x=num_cols[0],title=chart_title,color_discrete_sequence=["#636EFA"])
+        fig.update_yaxes(tickmode='linear', dtick=1)
+
 
     else:
         # Fallback: tabla visual

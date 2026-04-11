@@ -24,3 +24,25 @@ class ConversationMemory:
 
     def clear(self):
         self._history.clear()
+
+    def add_turn(self, user_message: str, assistant_response: str, sql: str = ""):
+        self._history.append({
+            "role": "user",
+            "content": user_message
+        })
+        self._history.append({
+            "role": "assistant", 
+            "content": assistant_response,
+            "sql": sql
+            })
+
+    def get_history_as_str(self) -> str:
+        if not self._history:
+            return "Sin historial previo."
+        lines = []
+        for msg in self._history:
+            prefix = "Usuario" if msg["role"] == "user" else "Asistente"
+            lines.append(f"{prefix}: {msg['content']}")
+            if msg.get("sql"):
+                lines.append(f"[SQL ejecutado: {msg['sql']}]")
+        return "\n".join(lines)

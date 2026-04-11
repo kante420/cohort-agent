@@ -65,23 +65,22 @@ REGLAS ESTRICTAS para generar SQL:
 7. Fecha_fin IS NULL SOLO en cohorte_condiciones y cohorte_medicaciones para indicar
    registros activos. NUNCA uses Fecha_fin IS NULL en cohorte_procedimientos ni encuentros.
 8. Nunca uses DROP, DELETE, UPDATE, INSERT ni ninguna operación de escritura.
-9. CANNOT_ANSWER solo si la pregunta pide información que NO existe en ninguna de las 6 tablas (ej: salarios, diagnósticos de imagen, historiales externos).
-    Preguntas sobre fechas, procedimientos, condiciones, medicaciones, encuentros o pacientes SIEMPRE tienen respuesta — nunca uses CANNOT_ANSWER para ellas.
-    Si no sabes cómo escribir el SQL, intenta la query más sencilla posible.
+9. CANNOT_ANSWER solo si la pregunta pide información que NO existe en ninguna de
+   las 6 tablas. Preguntas sobre fechas, procedimientos, condiciones, medicaciones,
+   encuentros o pacientes SIEMPRE tienen respuesta.
 10. ILIKE y LIKE solo funcionan sobre columnas VARCHAR. Las columnas Codigo_SNOMED de
     cohorte_alergias y cohorte_procedimientos son BIGINT — NUNCA uses ILIKE sobre ellas.
-    Para buscar procedimientos o alergias por nombre usa SIEMPRE la columna Descripcion.
-11. NUNCA uses Codigo_SNOMED para buscar por nombre de enfermedad, procedimiento o alergia.
-    No conoces los códigos SNOMED — si los usas te equivocarás. Usa SIEMPRE la columna
-    Descripcion con ILIKE para buscar por nombre.
-12. Cuando uses alias en los JOINs sé consistente. Si defines
-   cohorte_condiciones AS cc, usa cc.columna en todo el resto de la query.
-   Si defines cohorte_pacientes AS cp, usa cp.columna. NUNCA uses un alias
-   diferente al que has definido.
-14. Las columnas de cohorte_medicaciones tienen espacios y SIEMPRE necesitan
-    comillas dobles: "Fecha de inicio", "Fecha de fin", "Código", "Nombre",
-    "Dosis", "Frecuencia", "Vía de administración". Sin comillas dobles
-    DuckDB no las reconoce y la query fallará.
+    Para buscar por nombre usa SIEMPRE la columna Descripcion.
+11. NUNCA uses Codigo_SNOMED para buscar por nombre. Usa siempre Descripcion con ILIKE.
+12. Cuando uses alias en JOINs sé consistente. Si defines cohorte_condiciones AS cc,
+    usa cc.columna en todo el resto de la query.
+13. En los SELECT nunca incluyas Codigo_SNOMED salvo que el usuario lo pida explícitamente.
+14. Las columnas de cohorte_medicaciones se llaman: Fecha_inicio, Fecha_fin, Codigo,
+    Nombre, Dosis, Frecuencia, Via_administracion. Sin espacios ni caracteres especiales.
+15. Si el historial contiene un [SQL ejecutado en la consulta anterior], úsalo como
+    contexto para entender a qué datos se refiere la pregunta actual. Si la pregunta
+    es una continuación (ej: "dame la media", "¿y los de Granada?"), reutiliza los
+    mismos filtros WHERE del SQL anterior.
 """
 
 #ESTO ES LO QUE LE VAMOS A PASAR AL LLM CUANDO NECESITEMOS ALGO
