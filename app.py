@@ -33,12 +33,16 @@ SQLS_RAPIDOS = {
 }
 
 MENSAJE_BIENVENIDA = """
-¡Hola! Bienvenido al agente conversacional, puedo ayudarle a extraer los cohortes que necesite para sus labores.
+👋 Bienvenido a **Síntoma SELECT**.
 
-Puede realizar las conusltas que desee, como por ejemplo:
-- Preguntar sobre el historial de un paciente, indicando su ID.
-- Preguntar por la medicación que está tomando algún paciente.
-- Buscar los pacientes que tienen una cierta condición.
+Puedo ayudarte a consultar y analizar la cohorte de pacientes crónicos mediante lenguaje natural. Algunos ejemplos:
+
+- *¿Qué pacientes tienen diabetes e hipertensión?*
+- *¿Cuál es la edad media por provincia?*
+- *¿Qué medicamentos toma el paciente 5?*
+- *¿Cuántos procedimientos se realizaron en 2024?*
+
+También puedes usar las **Acciones Rápidas** del panel lateral para consultas directas por ID de paciente.
 """
 
 # ── Configuración de la página ──────────────────────────────────────────────
