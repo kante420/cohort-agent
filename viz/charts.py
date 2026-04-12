@@ -100,11 +100,22 @@ def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure
     #print(f"DEBUG build_chart text_cols={text_cols} num_cols={num_cols}")
 
     if chart_type == "bar" and text_cols and num_cols:
-        fig = px.bar(df,x=text_cols[0],y=num_cols[0],title=chart_title,color=text_cols[0],color_discrete_sequence=px.colors.qualitative.Set2)
+        fig = px.bar(
+            df,
+            x=text_cols[0],
+            y=num_cols[0],
+            title=chart_title,
+            color=num_cols[0],                          # color por valor
+            color_continuous_scale="teal",              # escala de color
+            text=num_cols[0]                            # valor encima de cada barra
+        )
+        fig.update_traces(textposition='outside')
         fig.update_yaxes(tickmode='linear', dtick=1)
+        fig.update_layout(coloraxis_showscale=False)    # oculta la barra de color lateral
 
     elif chart_type == "pie" and text_cols and num_cols:
         fig = px.pie(df,names=text_cols[0],values=num_cols[0],title=chart_title,color_discrete_sequence=px.colors.qualitative.Set2)
+        fig.update_traces(textposition='inside', textinfo='percent+label', pull=[0.05] * len(df), rotation=45)
 
     elif chart_type == "line":
         # Detecta columna de año por nombre
@@ -126,7 +137,10 @@ def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure
         # Corrige etiqueta Anio → Año
         x_label = x_col.replace("Anio", "Año").replace("anio", "Año").replace("ano", "Año").replace("Ano", "Año")
 
-        fig = px.line(
+        y_max = df[y_col].max()
+        dtick_y = max(1, round(y_max / 8))
+
+        fig = px.area(
             df,
             x=x_col,
             y=y_col,
@@ -134,10 +148,13 @@ def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure
             markers=True,
             labels={x_col: x_label}
         )
+
+        # Eje X — enteros si son años
         if pd.api.types.is_numeric_dtype(df[x_col]):
             fig.update_xaxes(tickmode='linear', dtick=1)
-        if pd.api.types.is_numeric_dtype(df[y_col]):
-            fig.update_yaxes(tickmode='linear', dtick=1)
+
+        # Eje Y — dtick automático
+        fig.update_yaxes(tickmode='linear', dtick=dtick_y)
 
     elif chart_type == "histogram" and num_cols:
         fig = px.histogram(df,x=num_cols[0],title=chart_title,color_discrete_sequence=["#636EFA"])

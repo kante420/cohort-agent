@@ -93,6 +93,9 @@ def conversation_to_pdf(messages: list) -> bytes:
 
     #Mensajes
     for msg in messages:
+        if msg.get("is_welcome"):
+            continue
+
         if msg["role"] == "user":
             elements.append(Paragraph("Usuario", user_label_style))
             elements.append(Paragraph(msg["content"], user_msg_style))
