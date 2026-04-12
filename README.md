@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="text_logo.png"/>
+  <img src="mostaza_sinfondo.png"/>
 </p>
 
 <h1 align="center"></h1>
