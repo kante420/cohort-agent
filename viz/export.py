@@ -98,6 +98,7 @@ def conversation_to_pdf(messages: list) -> bytes:
 
         if msg["role"] == "user":
             elements.append(Paragraph("Usuario", user_label_style))
+            elements.append(Spacer(1, 0.3*cm))
             elements.append(Paragraph(msg["content"], user_msg_style))
 
         elif msg["role"] == "assistant":
@@ -107,6 +108,7 @@ def conversation_to_pdf(messages: list) -> bytes:
             content = content.replace("**", "")
             content = content.replace("*", "")
             elements.append(Paragraph(content, assistant_msg_style))
+            elements.append(Spacer(1, 0.3*cm))
 
             #Código SQL (en el caso de que exista)
             if msg.get("sql") and msg["sql"] != "CANNOT_ANSWER":
