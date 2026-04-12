@@ -68,7 +68,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.image("text_logo.svg", width=400)
+st.image("text_logo.png", width=600)
 st.caption("Identificación y análisis de pacientes crónicos mediante lenguaje natural")
 
 #Analizamos el estado de la sesiónm
