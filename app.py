@@ -77,10 +77,12 @@ if "memory" not in st.session_state: #memory -> Guarda el contexto de la convers
 
 if "messages" not in st.session_state: #messages -> Array que guarda el historial de mensajes que vemos
     st.session_state.messages = [{
-            "role": "assistant",
-            "content": MENSAJE_BIENVENIDA
-        }
-        ]  # lista de dicts {role, content, chart, sql}
+        "role": "assistant",
+        "content": MENSAJE_BIENVENIDA,
+        "is_welcome": True,
+        "chart": None,
+        "sql": None
+    }]
 
 if "last_df" not in st.session_state: #last_df -> Guarda el último DataFrame
     st.session_state.last_df = None  # último DataFrame para exportar
@@ -177,7 +179,13 @@ with st.sidebar:
 
     #Acción de limpiar conversación
     if st.button("Limpiar conversación"):
-        st.session_state.messages = []
+        st.session_state.messages = [{
+            "role": "assistant",
+            "content": MENSAJE_BIENVENIDA,
+            "is_welcome": True,
+            "chart": None,
+            "sql": None
+        }]
         st.session_state.memory.clear()
         st.session_state.last_df = None
         st.rerun()
