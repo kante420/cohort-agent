@@ -7,3 +7,6 @@ __pycache__/
 db/cohort.duckdb
 exports/
 .streamlit/
+test_db.py
+test_graph.py
+test_sql_node.py
