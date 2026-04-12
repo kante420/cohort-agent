@@ -68,7 +68,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.image("text_logo.png", width=600) #Título de la Web
+st.image("mostaza_sinfondo.png", width=600) #Título de la Web
 st.caption("Identificación y análisis de pacientes crónicos mediante lenguaje natural") #Subtítulo de la Web
 
 ############################################################################
