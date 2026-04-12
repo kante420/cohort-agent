@@ -35,7 +35,7 @@ TABLA: cohorte_medicaciones
   - Nombre              (VARCHAR) Nombre del medicamento
   - Dosis               (VARCHAR) Dosis prescrita
   - Frecuencia          (VARCHAR) Frecuencia de administración
-  - Via_administracion  (VARCHAR) Vía (oral, intravenosa, etc.)
+  - Vía_administración  (VARCHAR) Vía (oral, intravenosa, etc.)
 
 TABLA: cohorte_alergias
   - PacienteID          (BIGINT)  Identificador del paciente

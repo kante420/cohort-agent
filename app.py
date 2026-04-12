@@ -4,6 +4,42 @@ from agent.memory import ConversationMemory
 import os
 import glob
 from datetime import datetime
+from agent.tools.duckdb_tool import DuckDBTool
+from agent.nodes.sql_node import generate_answer
+
+db_tool = DuckDBTool()
+
+SQLS_RAPIDOS = {
+    "Consultar medicación": """
+        SELECT Nombre, Dosis, Frecuencia, "Vía_administración", Fecha_inicio, Fecha_fin
+        FROM cohorte_medicaciones
+        WHERE PacienteID = {id}
+        ORDER BY Fecha_inicio DESC
+    """,
+    "Historial médico": """
+        SELECT 'Condición' AS Tipo, Descripcion, Fecha_inicio::VARCHAR AS Fecha
+        FROM cohorte_condiciones WHERE PacienteID = {id}
+        UNION ALL
+        SELECT 'Medicación', Nombre, Fecha_inicio::VARCHAR
+        FROM cohorte_medicaciones WHERE PacienteID = {id}
+        UNION ALL
+        SELECT 'Procedimiento', Descripcion, Fecha_inicio::VARCHAR
+        FROM cohorte_procedimientos WHERE PacienteID = {id}
+        UNION ALL
+        SELECT 'Encuentro', Tipo_encuentro, Fecha_inicio::VARCHAR
+        FROM cohorte_encuentros WHERE PacienteID = {id}
+        ORDER BY Fecha DESC
+    """
+}
+
+MENSAJE_BIENVENIDA = """
+¡Hola! Bienvenido al agente conversacional, puedo ayudarle a extraer los cohortes que necesite para sus labores.
+
+Puede realizar las conusltas que desee, como por ejemplo:
+- Preguntar sobre el historial de un paciente, indicando su ID.
+- Preguntar por la medicación que está tomando algún paciente.
+- Buscar los pacientes que tienen una cierta condición.
+"""
 
 # ── Configuración de la página ──────────────────────────────────────────────
 st.set_page_config(
@@ -12,6 +48,7 @@ st.set_page_config(
     layout="wide" #Que ocupe todo el ancho de la pantalla
 )
 
+#Logo superior
 st.markdown("""
     <style>
     [data-testid="stStatusWidget"] {
@@ -35,7 +72,11 @@ if "memory" not in st.session_state: #memory -> Guarda el contexto de la convers
     st.session_state.memory = ConversationMemory()
 
 if "messages" not in st.session_state: #messages -> Array que guarda el historial de mensajes que vemos
-    st.session_state.messages = []  # lista de dicts {role, content, chart, sql}
+    st.session_state.messages = [{
+            "role": "assistant",
+            "content": MENSAJE_BIENVENIDA
+        }
+        ]  # lista de dicts {role, content, chart, sql}
 
 if "last_df" not in st.session_state: #last_df -> Guarda el último DataFrame
     st.session_state.last_df = None  # último DataFrame para exportar
@@ -139,17 +180,49 @@ with st.sidebar:
 
     st.divider()
 
-    """#Información de las tablas disponibles
-    st.header("Tablas disponibles")
-    st.caption("cohorte_pacientes")
-    st.caption("cohorte_condiciones")
-    st.caption("cohorte_encuentros")
-    st.caption("cohorte_medicaciones")
-    st.caption("cohorte_alergias")
-    st.caption("cohorte_procedimientos")
-    """
+    with st.expander("⚡ Acciones Rápidas"):
+        accion = st.radio(
+            "Selecciona una acción:",
+            ["Consultar medicación", "Historial médico"],
+            index=None,
+            label_visibility="collapsed"
+        )
 
-    #st.divider()
+        if accion:
+            paciente_id_str = st.text_input(
+            "ID del paciente:",
+            placeholder="Escribe el ID del paciente"
+            )
+            paciente_id = int(paciente_id_str) if paciente_id_str.strip().isdigit() else None
+
+            if paciente_id:
+                if st.button("Consultar", key="btn_accion_rapida"):
+                    sql = SQLS_RAPIDOS[accion].format(id=paciente_id)
+
+                    with st.spinner("Analizando..."):
+                        result = db_tool.execute_query(sql)
+
+                    if result["success"] and not result["data"].empty:
+                        df = result["data"]
+
+                        if accion == "Consultar medicación":
+                            st.markdown(f"**Medicación del paciente {paciente_id}:**")
+                            for _, row in df.iterrows():
+                                fecha_inicio = str(row['Fecha_inicio'])[:10]
+                                fecha_fin = str(row['Fecha_fin'])[:10] if str(row['Fecha_fin']) != 'NaT' else "en curso"
+                                st.markdown(f"""
+                        - **{row['Nombre']}**  
+                            Dosis: {row['Dosis']} | Frecuencia: {row['Frecuencia']}  
+                            Vía: {row['Vía_administración']}  
+                            Desde {fecha_inicio} hasta {fecha_fin}
+                        """)
+                        else:
+                            st.markdown(f"**Historial del paciente {paciente_id}:**")
+                            for _, row in df.iterrows():
+                                st.markdown(f"- **{row['Tipo']}** — {row['Descripcion']} ({row['Fecha']})")
+                    else:
+                        st.warning(f"No se encontraron datos para el paciente {paciente_id}.")
+
 
     with st.expander("ℹ️ Sobre el proyecto"):
         st.image("logo_icon.png", width=300)
@@ -179,3 +252,6 @@ with st.sidebar:
         csv_files = glob.glob("./data/raw/*.csv")
         for f in sorted(csv_files):
             st.markdown(f"- `{os.path.basename(f)}`")
+
+    with st.expander("❓ FAQ"):
+        st.markdown("")
