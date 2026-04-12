@@ -45,7 +45,7 @@ Puedo ayudarte a consultar y analizar la cohorte de pacientes crónicos mediante
 También puedes usar las **Acciones Rápidas** del panel lateral para consultas directas por ID de paciente.
 """
 
-# ── Configuración de la página ──────────────────────────────────────────────
+#Configuración de la página
 st.set_page_config(
     page_title="Agente de Cohortes", #Nombre de la pestaña
     page_icon="logo_icon.png", #Icono de la pstaña
@@ -68,14 +68,19 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.image("text_logo.png", width=600)
-st.caption("Identificación y análisis de pacientes crónicos mediante lenguaje natural")
+st.image("text_logo.png", width=600) #Título de la Web
+st.caption("Identificación y análisis de pacientes crónicos mediante lenguaje natural") #Subtítulo de la Web
 
-#Analizamos el estado de la sesiónm
-if "memory" not in st.session_state: #memory -> Guarda el contexto de la conversación
+############################################################################
+# INICIALIZACIÓN DEL ESTADO DE LA SESIÓN ###################################
+############################################################################
+
+#Inicializamos la memoria de la conversación
+if "memory" not in st.session_state:
     st.session_state.memory = ConversationMemory()
 
-if "messages" not in st.session_state: #messages -> Array que guarda el historial de mensajes que vemos
+#Inicializamos el historial de mensajes visibles en la UI
+if "messages" not in st.session_state: #mesagges es un array que guarda los mensajes
     st.session_state.messages = [{
         "role": "assistant",
         "content": MENSAJE_BIENVENIDA,
@@ -84,8 +89,10 @@ if "messages" not in st.session_state: #messages -> Array que guarda el historia
         "sql": None
     }]
 
+#Variable para almacenar el ultimo DataFrame generado (exportación a .csv)
 if "last_df" not in st.session_state: #last_df -> Guarda el último DataFrame
     st.session_state.last_df = None  # último DataFrame para exportar
+
 
 #Recorremos todos los mensajes guardados y los ponemos en pantalla
 for i, msg in enumerate(st.session_state.messages):
@@ -97,7 +104,10 @@ for i, msg in enumerate(st.session_state.messages):
             with st.expander("SQL ejecutado"):
                 st.code(msg["sql"], language="sql")
 
-#Input del usuario
+############################################################################
+# GESTIÓN DE LAS ENTRADAS DEL USUARIO ######################################
+############################################################################
+
 if prompt := st.chat_input("Escribe tu pregunta sobre la cohorte..."):
 
     #Muestra y guarda el mensaje del usuario
@@ -105,15 +115,17 @@ if prompt := st.chat_input("Escribe tu pregunta sobre la cohorte..."):
         st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    #Llamamos al grafo
+    #Llamamos al grafo 
     with st.chat_message("assistant"):
         with st.spinner("Analizando..."):
+            #Preparamos el estado actual para el agente
             state = {
                 "user_question": prompt,
                 "conversation_history": st.session_state.memory.get_history_as_str()
             }
             result = agent.invoke(state)
 
+        #Extraemos resultados de la respuesta del agente
         answer = result.get("answer", "No se pudo generar una respuesta.")
         chart  = result.get("chart", None)
         sql    = result.get("sql", None)
@@ -144,11 +156,14 @@ if prompt := st.chat_input("Escribe tu pregunta sobre la cohorte..."):
     })
     st.session_state.memory.add_turn(prompt, answer)
 
-#Sidebar
+############################################################################
+# SIDEBAR ##################################################################
+############################################################################
+
 with st.sidebar:
     st.header("Acciones")
 
-    #Acción de exportar último resultado a .csv (si hay datos last_df)
+    #Exportamos el último resultado a CSV (si hay datos last_df)
     if st.session_state.last_df is not None:
         csv = st.session_state.last_df.to_csv(index=False).encode("utf-8")
         st.download_button(
@@ -192,6 +207,7 @@ with st.sidebar:
 
     st.divider()
 
+    #Sección de acciones rápidas
     with st.expander("⚡ Acciones Rápidas"):
         accion = st.radio(
             "Selecciona una acción:",
@@ -205,10 +221,12 @@ with st.sidebar:
             "ID del paciente:",
             placeholder="Escribe el ID del paciente"
             )
+            #Validación del ID numérico
             paciente_id = int(paciente_id_str) if paciente_id_str.strip().isdigit() else None
 
             if paciente_id:
                 if st.button("Consultar", key="btn_accion_rapida"):
+                    #Obtenemos la plantilla SQL predefinida
                     sql = SQLS_RAPIDOS[accion].format(id=paciente_id)
 
                     with st.spinner("Analizando..."):
@@ -217,6 +235,7 @@ with st.sidebar:
                     if result["success"] and not result["data"].empty:
                         df = result["data"]
 
+                        #Formateo según el tipo de consulta
                         if accion == "Consultar medicación":
                             st.markdown(f"**Medicación del paciente {paciente_id}:**")
                             for _, row in df.iterrows():
@@ -235,7 +254,7 @@ with st.sidebar:
                     else:
                         st.warning(f"No se encontraron datos para el paciente {paciente_id}.")
 
-
+    #Información del Proyecto
     with st.expander("ℹ️ Sobre el proyecto"):
         st.image("logo_icon.png", width=300)
         st.markdown("""
@@ -259,11 +278,13 @@ with st.sidebar:
         - Diego Calcerrada Romero - Estudiante de 2º de Ingeniería Informática en la ESIICR
         """)
 
+    #Fuente de Datos
     with st.expander("📂 Archivos de datos"):
         st.markdown("Las respuestas se generan consultando estos archivos:")
         csv_files = glob.glob("./data/raw/*.csv")
         for f in sorted(csv_files):
             st.markdown(f"- `{os.path.basename(f)}`")
 
+    #Frequently Asked Questions
     with st.expander("❓ FAQ"):
         st.markdown("")

@@ -51,14 +51,13 @@ def detect_chart_type(df: pd.DataFrame, question: str = "") -> str:
     if text_cols and num_cols:
         n_categorias = df[text_cols[0]].nunique()
 
-        # Pie solo si se pide explícitamente o hay exactamente 2 categorías
-        # y la pregunta habla de porcentaje/distribución
+        #PieChart solo si se pide explícitamente o hay exactamente 2 categorías y la pregunta habla de porcentaje/distribución
         if wants_pie and n_categorias <= 6:
             return "pie"
         if n_categorias == 2 and wants_pie:
             return "pie"
 
-        # Barras para todo lo demás
+        #BarChart para todo lo demás
         return "bar"
 
     if n_cols >= 2 and num_cols:
@@ -82,13 +81,11 @@ def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure
     if len(df) == 1 and n_cols == 1:
         return "none"
 
-    #Si la única columna es PacienteID, es una lista de IDs — no graficar
+    #Si la única columna es PacienteID, es una lista de IDs, no tiene sentido graficar
     if cols == ["PacienteID"] or cols == ["pacienteid"]:
         return "none"
 
     chart_type = detect_chart_type(df, question)
-
-    #print(f"DEBUG build_chart chart_type={chart_type}")
 
     text_cols = [c for c in cols if pd.api.types.is_string_dtype(df[c])
              or pd.api.types.is_object_dtype(df[c])]    
@@ -97,28 +94,26 @@ def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure
 
     chart_title = title
 
-    #print(f"DEBUG build_chart text_cols={text_cols} num_cols={num_cols}")
-
     if chart_type == "bar" and text_cols and num_cols:
         fig = px.bar(
             df,
             x=text_cols[0],
             y=num_cols[0],
             title=chart_title,
-            color=num_cols[0],                          # color por valor
-            color_continuous_scale="teal",              # escala de color
-            text=num_cols[0]                            # valor encima de cada barra
+            color=num_cols[0],                          #Color por valor
+            color_continuous_scale="teal",              #Escala de color
+            text=num_cols[0]                            #Valor encima de cada barra
         )
         fig.update_traces(textposition='outside')
         fig.update_yaxes(tickmode='linear', dtick=1)
-        fig.update_layout(coloraxis_showscale=False)    # oculta la barra de color lateral
+        fig.update_layout(coloraxis_showscale=False)    #Oculta la barra de color lateral
 
     elif chart_type == "pie" and text_cols and num_cols:
         fig = px.pie(df,names=text_cols[0],values=num_cols[0],title=chart_title,color_discrete_sequence=px.colors.qualitative.Set2)
         fig.update_traces(textposition='inside', textinfo='percent+label', pull=[0.05] * len(df), rotation=45)
 
     elif chart_type == "line":
-        # Detecta columna de año por nombre
+        #Detecta columna de año por nombre
         year_cols = [c for c in cols if any(k in c.lower() for k in ["año", "anio", "year", "fecha"])]
     
         if year_cols:
@@ -134,7 +129,7 @@ def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure
             x_col = cols[0]
             y_col = cols[1] if len(cols) > 1 else cols[0]
 
-        # Corrige etiqueta Anio → Año
+        #Corrige etiqueta Año
         x_label = x_col.replace("Anio", "Año").replace("anio", "Año").replace("ano", "Año").replace("Ano", "Año")
 
         y_max = df[y_col].max()
@@ -149,11 +144,11 @@ def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure
             labels={x_col: x_label}
         )
 
-        # Eje X — enteros si son años
+        #Eje X — enteros si son años
         if pd.api.types.is_numeric_dtype(df[x_col]):
             fig.update_xaxes(tickmode='linear', dtick=1)
 
-        # Eje Y — dtick automático
+        #Eje Y — dtick automático - calculado con la función dtick_y
         fig.update_yaxes(tickmode='linear', dtick=dtick_y)
 
     elif chart_type == "histogram" and num_cols:
@@ -162,7 +157,7 @@ def build_chart(df: pd.DataFrame, question: str = "", title: str = "") -> Figure
 
 
     else:
-        # Fallback: tabla visual
+        #Tabla visual
         fig = go.Figure(data=[go.Table(
             header=dict(values=list(df.columns),fill_color="#4A4AE8",font=dict(color="white", size=13),align="left"),
             cells=dict(values=[df[c].tolist() for c in df.columns],fill_color="white", font=dict(color="#1a1a2e", size=13),align="left"))])

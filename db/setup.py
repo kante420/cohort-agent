@@ -4,7 +4,7 @@ from config import DB_PATH, TABLE_NAMES
 
 CSV_DIR = "./data/raw" #Directorio donde se almacenan los .csv originales
 
-# FUNCIÓN PARA CARGAR LOS .csv A LA DB
+#FUNCIÓN PARA CARGAR LOS .csv A LA DB
 def load_csvs_to_duckdb():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True) #Crea el directorio donde estará la DB si no existe
     con = duckdb.connect(DB_PATH) #Abre una conexión a la DuckDB

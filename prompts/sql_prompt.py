@@ -1,4 +1,7 @@
-#EL ESQUEMA DE NUESTRA DB PARA EVEITAR ALUCINACIONES
+############################################################################
+# EL ESQUEMA DE NUESTRA DB PARA EVEITAR ALUCINACIONES ######################
+############################################################################
+
 SCHEMA_DESCRIPTION = """"
 Tienes acceso a una base de datos en DuckDB con 6 tablas de pacientes crónicos.
 A continuación se describe el esquema EXACTO. Usa ÚNICAMENTE los nombres de tabla
@@ -53,7 +56,10 @@ TABLA: cohorte_procedimientos
 RELACIONES:
   Todas las tablas se unen con cohorte_pacientes mediante PacienteID.
 """
-#ESTAS SON LAS CONDICIONES QUE IMPONEMOS A LA HORA DE GENERAR SQL
+############################################################################
+# ESTAS SON LAS CONDICIONES QUE IMPONEMOS A LA HORA DE GENERAR SQL #########
+############################################################################
+
 RULES = """
 REGLAS ESTRICTAS para generar SQL:
 1. Devuelve ÚNICAMENTE la query SQL, sin explicaciones, sin markdown, sin ```sql.
@@ -82,8 +88,11 @@ REGLAS ESTRICTAS para generar SQL:
     es una continuación (ej: "dame la media", "¿y los de Granada?"), reutiliza los
     mismos filtros WHERE del SQL anterior.
 """
+############################################################################
+# ESTO ES LO QUE LE VAMOS A PASAR AL LLM CUANDO NECESITEMOS ALGO ###########
+############################################################################
 
-#ESTO ES LO QUE LE VAMOS A PASAR AL LLM CUANDO NECESITEMOS ALGO
+
 SQL_GENERATION_PROMPT = f"""{SCHEMA_DESCRIPTION}
 
 {RULES}
@@ -126,6 +135,10 @@ Historial de la conversación (para contexto):
 Pregunta del usuario: {{user_question}}
 
 SQL:"""
+
+############################################################################
+# ESTO ES LO QUE LE VAMOS A PASAR AL LLM CUANDO TENGAMOS RESULTADO #########
+############################################################################
 
 ANSWER_GENERATION_PROMPT = """Eres un asistente médico especializado en análisis de cohortes de pacientes crónicos.
 

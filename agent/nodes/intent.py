@@ -4,6 +4,10 @@ from config import OLLAMA_HOST
 MODEL = "qwen2.5-coder:14b-instruct-q8_0"
 client = ollama.Client(host=OLLAMA_HOST)
 
+############################################################################
+# PROMPT PARA CLASIFICAR LA PREGUNTE DEL USUARIO ###########################
+############################################################################
+
 INTENT_PROMPT = """Clasifica la intención del mensaje del usuario en UNA de estas categorías:
 
 - sql        → pregunta sobre datos concretos de pacientes (quién, cuántos, cuáles, listar)
@@ -31,6 +35,7 @@ Mensaje del usuario: {mensaje}
 
 Responde ÚNICAMENTE con una de estas palabras: sql, estadistica, accion, fuera_scope"""
 
+#Función para clasificar la pregunta del usuario
 def intent_node(state: dict) -> dict:
     mensaje   = state.get("user_question", "")
     historial = state.get("conversation_history", "Sin historial previo.")

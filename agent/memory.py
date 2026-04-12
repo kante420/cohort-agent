@@ -22,9 +22,11 @@ class ConversationMemory:
             lines.append(f"{prefix}: {msg['content']}")
         return "\n".join(lines)
 
+    #Limpiar el historial
     def clear(self):
         self._history.clear()
 
+    #Nueva pregunta
     def add_turn(self, user_message: str, assistant_response: str, sql: str = ""):
         self._history.append({
             "role": "user",
@@ -36,6 +38,7 @@ class ConversationMemory:
             "sql": sql
             })
 
+    #Devolver historial
     def get_history_as_str(self) -> str:
         if not self._history:
             return "Sin historial previo."

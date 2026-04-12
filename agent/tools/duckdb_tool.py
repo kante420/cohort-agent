@@ -56,7 +56,7 @@ class DuckDBTool:
         except Exception as e:
             return False, str(e)
         
-    # Convierte un DataFrame (de Pandas, que devuelve DuckDB) a string legible para el prompt
+    #Convierte un DataFrame (de Pandas, que devuelve DuckDB) a string legible para el prompt
     def dataframe_to_str(self, df: pd.DataFrame, max_rows: int = 20) -> str:
         if df.empty:
             return "(sin resultados)"

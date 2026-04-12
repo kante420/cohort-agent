@@ -7,6 +7,7 @@ MODEL = "qwen2.5-coder:14b-instruct-q8_0"
 db_tool = DuckDBTool()
 client = ollama.Client(host=OLLAMA_HOST)
 
+#Llamada al LLM en modo Usuario
 def _call_llm(prompt: str) -> str:
     response = client.chat(
         model=MODEL,
@@ -14,6 +15,7 @@ def _call_llm(prompt: str) -> str:
     )
     return response["message"]["content"].strip()
 
+#Generar SQL a través del Prompt
 def generate_sql(user_question: str, conversation_history: str = "") -> str:
     prompt = SQL_GENERATION_PROMPT.format(
         conversation_history=conversation_history or "Sin historial previo.",
@@ -21,6 +23,7 @@ def generate_sql(user_question: str, conversation_history: str = "") -> str:
     )
     return _call_llm(prompt)
 
+#Generar respuesta textual tras resultado SQL
 def generate_answer(user_question: str, sql: str, result_str: str, row_count: int) -> str:
     prompt = ANSWER_GENERATION_PROMPT.format(
         user_question=user_question,
@@ -30,15 +33,11 @@ def generate_answer(user_question: str, sql: str, result_str: str, row_count: in
     )
     return _call_llm(prompt)
 
-"""
-    Correcciones automáticas para errores frecuentes del modelo:
-    1. ILIKE/LIKE sobre Codigo_SNOMED (BIGINT) → reemplaza por Descripcion
-    2. Fecha_fin IS NULL en procedimientos y encuentros → lo elimina
-    """
+#Correcciones automáticas para errores frequentes
 def fix_sql(sql: str) -> str:
     import re
 
-    # Fix 1: ILIKE o LIKE sobre Codigo_SNOMED → usar Descripcion
+    #Fix 1: ILIKE o LIKE sobre Codigo_SNOMED → usar Descripcion
     sql = re.sub(
         r'Codigo_SNOMED\s+(I?LIKE)\s+',
         r'Descripcion \1 ',
@@ -46,11 +45,11 @@ def fix_sql(sql: str) -> str:
         flags=re.IGNORECASE
     )
 
-    # Fix 2: Codigo_SNOMED = número → alucinación de código SNOMED
+    #Fix 2: Codigo_SNOMED = número → alucinación de código SNOMED
     if re.search(r'Codigo_SNOMED\s*=\s*[\'"]?\d+[\'"]?', sql, flags=re.IGNORECASE):
         return "SNOMED_HALLUCINATION"
 
-    # Fix 3: elimina Fecha_fin IS NULL en procedimientos y encuentros
+    #Fix 3: elimina Fecha_fin IS NULL en procedimientos y encuentros
     tablas_sin_activo = ["cohorte_procedimientos", "cohorte_encuentros"]
     for tabla in tablas_sin_activo:
         if tabla.lower() in sql.lower():
@@ -58,7 +57,7 @@ def fix_sql(sql: str) -> str:
             sql = re.sub(r'Fecha_fin\s+IS\s+NULL\s+AND', '', sql, flags=re.IGNORECASE)
             sql = re.sub(r'WHERE\s+Fecha_fin\s+IS\s+NULL', 'WHERE 1=1', sql, flags=re.IGNORECASE)
 
-    # Fix 4: aliases inconsistentes
+    #Fix 4: aliases inconsistentes
     alias_map = {}
     for match in re.finditer(r'\b\w+\s+AS\s+(\w+)\b', sql, flags=re.IGNORECASE):
         alias_map[match.group(1).upper()] = match.group(1)
@@ -80,11 +79,11 @@ def fix_sql(sql: str) -> str:
                 correct = alias_map[candidates[0]]
                 sql = re.sub(rf'\b{re.escape(prefix)}\.', f'{correct}.', sql)
 
-    # Fix 5: SELECT sin DISTINCT en JOINs → añade DISTINCT automáticamente
+    #Fix 5: SELECT sin DISTINCT en JOINs → añade DISTINCT automáticamente
     if re.search(r'JOIN', sql, flags=re.IGNORECASE):
         sql = re.sub(r'\bSELECT\b(?!\s+DISTINCT)', 'SELECT DISTINCT', sql, flags=re.IGNORECASE)
 
-    # Fix 6: LIKE → ILIKE
+    #Fix 6: LIKE → ILIKE
     sql = re.sub(
         r'\bLIKE\b(?!\s+ALL)(?!\s+ANY)',
         'ILIKE',
@@ -92,7 +91,7 @@ def fix_sql(sql: str) -> str:
         flags=re.IGNORECASE
     )
 
-    # Fix 7: YEAR() → EXTRACT(YEAR FROM ...)
+    #Fix 7: YEAR() → EXTRACT(YEAR FROM ...)
     sql = re.sub(
         r'\bYEAR\s*\(\s*(\w+\.\w+|\w+)\s*\)',
         r'EXTRACT(YEAR FROM \1)',
@@ -100,7 +99,7 @@ def fix_sql(sql: str) -> str:
         flags=re.IGNORECASE
     )
 
-    # Fix 8: MONTH() → EXTRACT(MONTH FROM ...)
+    #Fix 8: MONTH() → EXTRACT(MONTH FROM ...)
     sql = re.sub(
         r'\bMONTH\s*\(\s*(\w+\.\w+|\w+)\s*\)',
         r'EXTRACT(MONTH FROM \1)',
@@ -108,7 +107,7 @@ def fix_sql(sql: str) -> str:
         flags=re.IGNORECASE
     )
 
-    # Fix 9: EncuentroID no existe → contar filas con COUNT(*)
+    #Fix 9: EncuentroID no existe → contar filas con COUNT(*)
     sql = re.sub(
         r'COUNT\s*\(\s*DISTINCT\s+\w+\.EncuentroID\s*\)',
         'COUNT(*)',
@@ -122,7 +121,7 @@ def fix_sql(sql: str) -> str:
         flags=re.IGNORECASE
     )
 
-    # Fix 10: cp.Descripcion no existe en cohorte_pacientes → viene de cohorte_condiciones
+    #Fix 10: cp.Descripcion no existe en cohorte_pacientes → viene de cohorte_condiciones
     sql = re.sub(
         r'\bcp\.Descripcion\b',
         'cc.Descripcion',
@@ -133,19 +132,19 @@ def fix_sql(sql: str) -> str:
     sql = re.sub(r'\s+', ' ', sql).strip()
     return sql
 
-
+#Creación de nodo SQL
 def sql_node(state: dict) -> dict:
-    question = state.get("user_question", "")
-    history  = state.get("conversation_history", "")
+    question = state.get("user_question", "")  #Cogemos la pregunta
+    history  = state.get("conversation_history", "") #Cogemos el historial
 
-    sql = generate_sql(question, history)
+    sql = generate_sql(question, history) #Generamos el SQL
 
     if sql.strip() == "CANNOT_ANSWER":
         return {**state, "answer": "No puedo responder esa pregunta con los datos disponibles.", "sql": sql, "query_result": None}
 
     sql = sql.replace("```sql", "").replace("```", "").strip() #Limpiamos markdown
 
-    sql=fix_sql(sql) #Correciones automáticas antes de validar
+    sql = fix_sql(sql) #Correciones automáticas antes de validar
 
     #Si el modelo usó un código SNOMED inventado -> lo rechazamos
     if sql == "SNOMED_HALLUCINATION":
