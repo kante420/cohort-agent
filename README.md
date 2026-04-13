@@ -14,10 +14,10 @@ The challenge of this project lies on indentifying cohorts of cronic patients ba
 
 Síntoma SELECT lets healthcare professionals query clinical data in plain Spanish — no SQL knowledge required. Ask questions like:
 
-- *"How many patients have diabetes and hypertension?"*
-- *"What is the average age per province?"*
-- *"Which medications does patient 5 take?"*
-- *"How many procedures were performed in 2024?"*
+- _"How many patients have diabetes and hypertension?"_
+- _"What is the average age per province?"_
+- _"Which medications does patient 5 take?"_
+- _"How many procedures were performed in 2024?"_
 
 The agent translates each question into SQL, executes it against a DuckDB database, and returns a natural language answer with automatic charts.
 
@@ -25,13 +25,13 @@ The agent translates each question into SQL, executes it against a DuckDB databa
 
 **Key components:**
 
-| Layer | Technology |
-|-------|-----------|
-| Orchestration | LangGraph |
-| LLM | Qwen 2.5 Coder 14B Q8 via Ollama |
-| Database | DuckDB (6 CSV cohort files) |
-| Visualization | Plotly |
-| UI | Streamlit |
+| Layer         | Technology                       |
+| ------------- | -------------------------------- |
+| Orchestration | LangGraph                        |
+| LLM           | Qwen 2.5 Coder 14B Q8 via Ollama |
+| Database      | DuckDB (6 CSV cohort files)      |
+| Visualization | Plotly                           |
+| UI            | Streamlit                        |
 
 ---
 
@@ -42,17 +42,20 @@ The agent translates each question into SQL, executes it against a DuckDB databa
 - Python 3.12+
 - [Ollama](https://ollama.com/download) installed and running
 - The 6 cohort CSV files (provided separately)
+
 ---
 
 ### Installation
 
 **1. Clone the repository**
+
 ```bash
 git clone https://github.com/kante420/cohort-agent.git
 cd cohort-agent
 ```
 
 **2. Create and activate a virtual environment**
+
 ```bash
 python -m venv .venv
 # Windows
@@ -62,11 +65,13 @@ source .venv/bin/activate
 ```
 
 **3. Install dependencies**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 **4. Pull the LLM model**
+
 ```bash
 ollama pull qwen2.5-coder:14b-instruct-q8_0
 ```
@@ -88,11 +93,13 @@ Create a `.env` file in the project root:
 Place the 6 CSV files inside `data/raw/`
 
 **7. Load the database**
+
 ```bash
 python -m db.setup
 ```
 
 **8. Launch the app**
+
 ```bash
 streamlit run app.py
 ```
@@ -113,8 +120,13 @@ The app runs at `http://localhost:8501` by default.
 
 ---
 
+## Documentation
+
+[📄 See technical documentation](Sintoma_SELECT.pdf)
+
+---
+
 ## Built by
 
 **Hugo Cantero Serrano** · 2nd year Computer Engineering · ESIIAB, UCLM  
 **Diego Calcerrada Romero** · 2nd year Computer Engineering · ESIICR, UCLM
-
